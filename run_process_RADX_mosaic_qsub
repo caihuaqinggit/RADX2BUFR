@@ -1,0 +1,54 @@
+######### Run a exe file using qsub   #########
+
+This is for submiting an interactive job.  
+With an interactive job, you submit a job that when it starts running 
+it gives you a prompt on a service node where you can run aprun.
+qsub -l select=1:ncpus=1:mpiprocs=1 -A ARLAP14877100 -l walltime=00:59:00 -q debug -I 
+
+Here, 
+-l means resources, select=1 (number of nodes), ncpus=1 (number of cores per node)
+   mpiprocs=1, number of MPI processes per node. Usually we want ncpus==mpiprocs
+-A ARLAP14877100 ------ account or project ID
+-l walltime=00:59:00 ---- time requested for this job is 59 min. HH:MM:SS
+-q debug  ----- use the debug queue
+-I        ----- interactive job, which gives you a prompt on >batch?:
+
+once the job starts you will get a prompt where you can run aprun for the next 59 minutes.
+
+##### You should not submit another qsub before the first one finished. In that case, the
+##### prompt won't appear, and you can not run your aprun command!
+
+
+(1) qsub -l select=1:ncpus=1:mpiprocs=1 -A ARLAP14877100 -l walltime=00:59:00 -q debug -I 
+
+
+(2) aprun -n 1 ./process_RADX_mosaic.exe >& logFile_process_RADX_20160910_051757.txt
+
+The prompt for qsub job is something like "batch12"
+######################################################################
+The procedure to run process_RADX_mosaic.exe
+######################################################################
+(1) run RADX to create netcdf files from UF data for the WRF domain.
+    This is done in lrose directory by running radx2grid
+(2) change mosaic.namelist so that the proper DIR for radx file is set,
+    and so does the correct analysis time. 
+(2) Copy the netcdf files to ~/radar_mrms/process_radx/data/radx,
+    copy the file to be processed as radx_netcdf1, which is the input file name:
+    cp ncf_20160910_002204.nc radx_netcdf1
+(3) run the qsub command
+(4) the output bufr files are created inside the same directory as you run qsub.
+    The file names are: NSSLRefInGSI.bufr, RefInGSI.dat, and RefInGSI3D.dat.
+    Rename these files to proper name containes radar valid times.
+    For example: cp NSSLRefInGSI.bufr NSSLRefInGSI_20160910_014514.bufr
+########################################################################
+
+Examples of copying process_RADX_mosaic.exe output files to bufr directory
+after it is run:
+
+batch8> aprun -n 1 ./process_RADX_mosaic.exe >& logFile_process_RADX_20160909_234504.txt
+batch8> mv NSSLRefInGSI.bufr /p/home/caihq/radar_mrms/process_radx/data/bufr/NSSLRefInGSI_20160909_234504.bufr
+batch8> mv RefInGSI.dat /p/home/caihq/radar_mrms/process_radx/data/bufr/RefInGSI_20160909_234504.dat
+batch8> mv RefInGSI3D.dat /p/home/caihq/radar_mrms/process_radx/data/bufr/RefInGSI3D_20160909_234504.dat
+##########################################################################
+
+

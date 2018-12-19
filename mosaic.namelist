@@ -1,0 +1,5 @@
+ &setup
+  tversion=14,
+  analysis_time = 2016090923,
+  dataPath = '/p/home/caihq/run/process_radx/data/radx/',
+ /

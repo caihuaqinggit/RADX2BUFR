@@ -1,0 +1,59 @@
+#!/bin/bash
+#### script to run converting radx to bufr ####
+#### (1) run qsub to get into batch mode   ####
+#qsub -l select=1:ncpus=1:mpiprocs=1 -A ARLAP14877100 -l walltime=00:59:00 -q debug -I 
+cd /p/home/caihq/run/process_radx/
+#### Start the for loop to process each radx file 
+count=0
+for i in $(ls /p/home/caihq/run/process_radx/data/radx/ncf*.nc); do
+    count=$((count+1))
+    echo "processing file Number: $count Name: $i"
+    cd /p/home/caihq/run/process_radx/data/radx
+    \cp $i radx_netcdf1
+    ### get the file time stamp ###
+    TimeStamp=${i:44:16}
+    #echo $TimeStamp
+    
+    ### Create the file names for Log*.txt, NSSLRefInGSI*.bufr,RefInGSI3D*.dat, and RefInGSI*.dat
+    ### Log File name ###
+    LogFile="logFile_process_RADX"
+    LogFile="$LogFile$TimeStamp"
+    suffix_txt=".txt"
+    LogFile="$LogFile$suffix_txt"
+    #echo $LogFile
+    
+    ### bufr file name ###
+    BufrFile0="NSSLRefInGSI.bufr"
+    suffix_bufr=".bufr"
+    BufrFile="NSSLRefInGSI"
+    BufrFile1="$BufrFile$TimeStamp$suffix_bufr"
+
+    ### RefInGSI3D file name ###
+    RefInGSI3DFile0="RefInGSI3D.dat"
+    suffix_dat=".dat"
+    RefInGSI3DFile="RefInGSI3D"
+    RefInGSI3DFile1="$RefInGSI3DFile$TimeStamp$suffix_dat"
+ 
+    ### RefInGSI file name ###
+    RefInGSIFile0="RefInGSI.dat"
+    suffix_dat=".dat"
+    RefInGSIFile="RefInGSI"
+    RefInGSIFile1="$RefInGSIFile$TimeStamp$suffix_dat"
+
+    ### Test output fRefInGSIFileile names  ####
+    echo "$BufrFile1  $RefInGSI3DFile1  $RefInGSIFile1"
+
+    ### Run the exe file to process radx files using ###
+    # go back to run/process_radx directory where the exe, log, and temp output files are stored
+    cd /p/home/caihq/run/process_radx/
+    aprun -n 1 ./process_RADX_mosaic.exe >& $LogFile
+ 
+    ### move output files to output directory
+    mv $BufrFile0 /p/home/caihq/run/process_radx/data/bufr/$BufrFile1
+    mv $RefInGSI3DFile0 /p/home/caihq/run/process_radx/data/bufr/$RefInGSI3DFile1
+    mv $RefInGSIFile0 /p/home/caihq/run/process_radx/data/bufr/$RefInGSIFile1
+
+done
+
+
+
